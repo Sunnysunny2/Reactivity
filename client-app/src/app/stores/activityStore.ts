@@ -13,16 +13,26 @@ class ActivityStore {
     }
 
     @observable activityRegistry = new Map();
-    // @observable activities: IActivity[] = [];
     @observable activity: IActivity | null = null;
     @observable loadingInitial = false;
-    // @observable editMode = false;
     @observable submitting = false;
     @observable target = '';
 
     @computed get activitiesByDate() {
-        return Array.from(this.activityRegistry.values()).slice().sort(
-            (a, b) => Date.parse(a.date) - Date.parse(b.date));
+        return this.groupActivitiesByDate(Array.from(this.activityRegistry.values()));
+        // return Array.from(this.activityRegistry.values()).slice().sort(
+        //     (a, b) => Date.parse(a.date) - Date.parse(b.date));
+    }
+
+    groupActivitiesByDate(activities: IActivity[]) {
+        const sortedActivities = activities.sort(
+            (a, b) => Date.parse(a.date) - Date.parse(b.date)
+        )
+        return Object.entries(sortedActivities.reduce((activities, activity) => {
+            const date = activity.date.split('T')[0];
+            activities[date] = activities[date] ? [...activities[date], activity] : [activity]
+            return activities;
+        }, {} as { [key: string]: IActivity[] }));
     }
 
     @action loadActivities = async () => {
@@ -131,6 +141,8 @@ class ActivityStore {
         }
     }
 
+    // @observable activities: IActivity[] = [];
+    // @observable editMode = false;
     // @action openCreateForm = () => {
     //     this.activity = null;
     //     this.editMode = true;
